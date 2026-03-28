@@ -1,0 +1,1475 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Empire Showroom</title>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Montserrat:wght@300;400;500;600;700&display=swap');
+
+  :root {
+    --bg: #0a0a0a;
+    --surface: #111111;
+    --surface2: #1a1a1a;
+    --border: #222222;
+    --accent: #ffffff;
+    --accent2: #c8a96e;
+    --text: #ffffff;
+    --text2: #888888;
+    --text3: #555555;
+    --danger: #ff4444;
+    --tab-h: 56px;
+    --header-h: 56px;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+  html, body {
+    height: 100%;
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Montserrat', sans-serif;
+    overflow: hidden;
+    user-select: none;
+  }
+
+  /* ── APP SHELL ── */
+  #app { display: flex; flex-direction: column; height: 100vh; height: 100dvh; }
+
+  /* ── TOP NAV TABS ── */
+  #tabs {
+    display: flex;
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    overflow-x: auto;
+    flex-shrink: 0;
+    scrollbar-width: none;
+    height: var(--tab-h);
+  }
+  #tabs::-webkit-scrollbar { display: none; }
+  .tab {
+    flex-shrink: 0;
+    padding: 0 16px;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 15px;
+    letter-spacing: 1.5px;
+    color: var(--text3);
+    cursor: pointer;
+    position: relative;
+    transition: color .2s;
+    white-space: nowrap;
+  }
+  .tab.active { color: var(--accent2); }
+  .tab.active::after {
+    content: '';
+    position: absolute;
+    bottom: 0; left: 50%; transform: translateX(-50%);
+    width: 24px; height: 2px;
+    background: var(--accent2);
+    border-radius: 2px 2px 0 0;
+  }
+  .tab.sale-tab { color: var(--danger); }
+  .tab.sale-tab.active { color: var(--danger); }
+  .tab.sale-tab.active::after { background: var(--danger); }
+
+  /* ── MAIN SCROLL ── */
+  #main {
+    flex: 1;
+    overflow-y: auto;
+    overflow-x: hidden;
+    scrollbar-width: none;
+    position: relative;
+  }
+  #main::-webkit-scrollbar { display: none; }
+
+  /* ── SCREENS ── */
+  .screen { display: none; min-height: 100%; }
+  .screen.active { display: block; }
+
+  /* ── BRAND SELECTOR SCREEN ── */
+  .brand-screen { padding: 16px; }
+
+  .search-wrap {
+    position: relative;
+    margin-bottom: 16px;
+  }
+  .search-wrap svg {
+    position: absolute; left: 14px; top: 50%; transform: translateY(-50%);
+    width: 16px; height: 16px; fill: none; stroke: var(--text3); stroke-width: 2;
+  }
+  .search-input {
+    width: 100%;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 12px 14px 12px 40px;
+    color: var(--text);
+    font-family: 'Montserrat', sans-serif;
+    font-size: 13px;
+    outline: none;
+    transition: border-color .2s;
+  }
+  .search-input::placeholder { color: var(--text3); }
+  .search-input:focus { border-color: var(--accent2); }
+
+  .section-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 13px;
+    letter-spacing: 2px;
+    color: var(--text3);
+    margin-bottom: 10px;
+    padding-left: 2px;
+  }
+
+  .brands-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+  }
+  .brand-card {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 18px 14px;
+    cursor: pointer;
+    transition: border-color .2s, background .2s;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .brand-card:active { background: #222; }
+  .brand-card:hover { border-color: var(--accent2); }
+  .brand-initial {
+    width: 38px; height: 38px;
+    background: var(--border);
+    border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 18px;
+    color: var(--accent2);
+    flex-shrink: 0;
+  }
+  .brand-info {}
+  .brand-name {
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: .5px;
+    color: var(--text);
+    line-height: 1.3;
+  }
+  .brand-count { font-size: 11px; color: var(--text3); margin-top: 2px; }
+
+  /* ── PRODUCT LIST ── */
+  .products-screen { padding: 0; }
+
+  .products-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 14px 16px;
+    border-bottom: 1px solid var(--border);
+    background: var(--surface);
+    position: sticky;
+    top: 0;
+    z-index: 10;
+  }
+  .back-btn {
+    width: 34px; height: 34px;
+    display: flex; align-items: center; justify-content: center;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    cursor: pointer;
+    flex-shrink: 0;
+    transition: border-color .2s;
+  }
+  .back-btn svg { width: 16px; height: 16px; fill: none; stroke: var(--text); stroke-width: 2; }
+  .products-header-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 20px;
+    letter-spacing: 2px;
+    color: var(--accent2);
+    flex: 1;
+  }
+  .filter-btn {
+    width: 34px; height: 34px;
+    display: flex; align-items: center; justify-content: center;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    cursor: pointer;
+    position: relative;
+  }
+  .filter-btn svg { width: 16px; height: 16px; fill: none; stroke: var(--text); stroke-width: 2; }
+  .filter-badge {
+    position: absolute; top: -4px; right: -4px;
+    width: 14px; height: 14px;
+    background: var(--accent2);
+    border-radius: 50%;
+    font-size: 8px;
+    display: flex; align-items: center; justify-content: center;
+    color: #000;
+    font-weight: 700;
+    display: none;
+  }
+
+  .products-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 2px;
+    padding: 2px;
+  }
+
+  .product-card {
+    background: var(--surface);
+    cursor: pointer;
+    position: relative;
+    overflow: hidden;
+  }
+  .product-img-wrap {
+    position: relative;
+    aspect-ratio: 3/4;
+    overflow: hidden;
+    background: var(--surface2);
+  }
+  .product-img-wrap img {
+    width: 100%; height: 100%;
+    object-fit: cover;
+    transition: transform .3s;
+  }
+  .product-card:active .product-img-wrap img { transform: scale(1.04); }
+
+  .product-badges {
+    position: absolute; top: 8px; left: 8px;
+    display: flex; flex-direction: column; gap: 4px;
+    z-index: 2;
+  }
+  .badge {
+    padding: 3px 7px;
+    border-radius: 4px;
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+  }
+  .badge-new { background: var(--accent2); color: #000; }
+  .badge-sale { background: var(--danger); color: #fff; }
+  .badge-hit { background: #fff; color: #000; }
+
+  .product-fav {
+    position: absolute; top: 8px; right: 8px;
+    width: 30px; height: 30px;
+    background: rgba(0,0,0,.5);
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    z-index: 2;
+    cursor: pointer;
+    transition: background .2s;
+  }
+  .product-fav.active { background: rgba(200,169,110,.2); }
+  .product-fav svg { width: 14px; height: 14px; fill: none; stroke: #fff; stroke-width: 2; }
+  .product-fav.active svg { fill: var(--accent2); stroke: var(--accent2); }
+
+  .product-info { padding: 10px 10px 14px; }
+  .product-brand { font-size: 9px; letter-spacing: 2px; color: var(--accent2); text-transform: uppercase; margin-bottom: 4px; }
+  .product-name { font-size: 12px; font-weight: 500; color: var(--text); line-height: 1.4; margin-bottom: 6px; }
+  .product-price-row { display: flex; align-items: center; gap: 6px; }
+  .product-price { font-size: 13px; font-weight: 700; color: var(--text); }
+  .product-price-old { font-size: 11px; color: var(--text3); text-decoration: line-through; }
+  .product-price.sale { color: var(--danger); }
+
+  /* ── PRODUCT DETAIL (full screen overlay) ── */
+  #product-detail {
+    position: fixed;
+    inset: 0;
+    background: var(--bg);
+    z-index: 100;
+    display: flex;
+    flex-direction: column;
+    transform: translateX(100%);
+    transition: transform .3s cubic-bezier(.4,0,.2,1);
+  }
+  #product-detail.open { transform: translateX(0); }
+
+  .detail-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 16px;
+    background: var(--bg);
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    z-index: 10;
+  }
+  .detail-back {
+    width: 36px; height: 36px;
+    background: rgba(0,0,0,.5);
+    backdrop-filter: blur(10px);
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer;
+  }
+  .detail-back svg { width: 18px; height: 18px; fill: none; stroke: #fff; stroke-width: 2; }
+  .detail-share {
+    width: 36px; height: 36px;
+    background: rgba(0,0,0,.5);
+    backdrop-filter: blur(10px);
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer;
+  }
+  .detail-share svg { width: 16px; height: 16px; fill: none; stroke: #fff; stroke-width: 2; }
+
+  /* slider */
+  .detail-slider {
+    position: relative;
+    flex-shrink: 0;
+    background: var(--surface2);
+    overflow: hidden;
+  }
+  .detail-slider-track {
+    display: flex;
+    transition: transform .35s cubic-bezier(.4,0,.2,1);
+    height: 100%;
+  }
+  .detail-slide {
+    flex-shrink: 0;
+    width: 100%;
+    height: 100%;
+  }
+  .detail-slide img {
+    width: 100%; height: 100%;
+    object-fit: cover;
+  }
+  .slider-dots {
+    position: absolute;
+    bottom: 14px; left: 50%; transform: translateX(-50%);
+    display: flex; gap: 5px;
+  }
+  .slider-dot {
+    width: 5px; height: 5px;
+    background: rgba(255,255,255,.3);
+    border-radius: 50%;
+    transition: background .2s, width .2s;
+  }
+  .slider-dot.active { background: #fff; width: 16px; border-radius: 3px; }
+
+  /* detail body */
+  .detail-body {
+    flex: 1;
+    overflow-y: auto;
+    scrollbar-width: none;
+  }
+  .detail-body::-webkit-scrollbar { display: none; }
+
+  .detail-content { padding: 20px 16px 140px; }
+
+  .detail-brand-row {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 6px;
+  }
+  .detail-brand { font-size: 10px; letter-spacing: 2.5px; color: var(--accent2); text-transform: uppercase; }
+  .detail-fav {
+    width: 34px; height: 34px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer;
+  }
+  .detail-fav svg { width: 16px; height: 16px; fill: none; stroke: var(--text2); stroke-width: 2; }
+  .detail-fav.active svg { fill: var(--accent2); stroke: var(--accent2); }
+
+  .detail-name {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 28px;
+    letter-spacing: 1px;
+    color: var(--text);
+    line-height: 1.1;
+    margin-bottom: 10px;
+  }
+
+  .detail-price-row { display: flex; align-items: baseline; gap: 10px; margin-bottom: 18px; }
+  .detail-price { font-size: 24px; font-weight: 700; color: var(--text); }
+  .detail-price.sale { color: var(--danger); }
+  .detail-price-old { font-size: 16px; color: var(--text3); text-decoration: line-through; }
+  .detail-discount {
+    padding: 3px 8px;
+    background: rgba(255,68,68,.15);
+    border: 1px solid rgba(255,68,68,.3);
+    border-radius: 4px;
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--danger);
+  }
+
+  .detail-section-label {
+    font-size: 10px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--text3);
+    margin-bottom: 10px;
+  }
+
+  /* sizes */
+  .sizes-wrap {
+    display: flex; gap: 8px; flex-wrap: wrap;
+    margin-bottom: 20px;
+  }
+  .size-chip {
+    min-width: 44px; height: 44px;
+    padding: 0 10px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text2);
+    cursor: pointer;
+    transition: all .15s;
+  }
+  .size-chip.active {
+    background: var(--accent2);
+    border-color: var(--accent2);
+    color: #000;
+  }
+  .size-chip.unavailable {
+    opacity: .3;
+    cursor: not-allowed;
+    position: relative;
+  }
+  .size-chip.unavailable::after {
+    content: '';
+    position: absolute;
+    width: 1px; height: 120%;
+    background: var(--text3);
+    transform: rotate(45deg);
+  }
+
+  /* description */
+  .detail-desc {
+    font-size: 13px;
+    line-height: 1.7;
+    color: var(--text2);
+    margin-bottom: 20px;
+  }
+
+  /* tags */
+  .detail-tags { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 20px; }
+  .detail-tag {
+    padding: 5px 10px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    font-size: 11px;
+    color: var(--text3);
+  }
+
+  /* specs */
+  .specs-table { border-radius: 10px; overflow: hidden; border: 1px solid var(--border); }
+  .spec-row { display: flex; border-bottom: 1px solid var(--border); }
+  .spec-row:last-child { border-bottom: none; }
+  .spec-key { flex: 1; padding: 10px 14px; font-size: 12px; color: var(--text3); background: var(--surface2); }
+  .spec-val { flex: 1.5; padding: 10px 14px; font-size: 12px; color: var(--text); }
+
+  /* bottom bar */
+  .detail-bottom {
+    position: fixed;
+    bottom: 0; left: 0; right: 0;
+    padding: 12px 16px;
+    background: var(--bg);
+    border-top: 1px solid var(--border);
+    display: flex; gap: 10px;
+    z-index: 20;
+  }
+  .detail-bottom::before {
+    content: '';
+    position: absolute; bottom: 100%; left: 0; right: 0;
+    height: 40px;
+    background: linear-gradient(transparent, var(--bg));
+    pointer-events: none;
+  }
+  .btn-cart {
+    flex: 1;
+    padding: 15px;
+    background: var(--accent2);
+    border: none;
+    border-radius: 12px;
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 16px;
+    letter-spacing: 2px;
+    color: #000;
+    cursor: pointer;
+    transition: opacity .2s, transform .1s;
+    display: flex; align-items: center; justify-content: center; gap: 8px;
+  }
+  .btn-cart:active { opacity: .85; transform: scale(.98); }
+  .btn-cart svg { width: 16px; height: 16px; fill: none; stroke: #000; stroke-width: 2.5; }
+  .btn-buy {
+    padding: 15px 20px;
+    background: transparent;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 16px;
+    letter-spacing: 2px;
+    color: var(--text);
+    cursor: pointer;
+    transition: border-color .2s;
+  }
+  .btn-buy:active { border-color: var(--accent2); }
+
+  /* ── CART INDICATOR ── */
+  #cart-fab {
+    position: fixed;
+    bottom: 20px; right: 16px;
+    width: 52px; height: 52px;
+    background: var(--accent2);
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    z-index: 50;
+    cursor: pointer;
+    box-shadow: 0 4px 20px rgba(200,169,110,.4);
+    transform: scale(0);
+    transition: transform .3s cubic-bezier(.34,1.56,.64,1);
+  }
+  #cart-fab.visible { transform: scale(1); }
+  #cart-fab svg { width: 22px; height: 22px; fill: none; stroke: #000; stroke-width: 2.5; }
+  #cart-count {
+    position: absolute; top: -2px; right: -2px;
+    width: 20px; height: 20px;
+    background: var(--danger);
+    border-radius: 50%;
+    font-size: 11px;
+    font-weight: 700;
+    display: flex; align-items: center; justify-content: center;
+    color: #fff;
+    border: 2px solid var(--bg);
+  }
+
+  /* ── STATIC SCREENS ── */
+  .static-screen { padding: 20px 16px; }
+  .static-banner {
+    background: linear-gradient(135deg, #1a1a1a 0%, #111 100%);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 28px 20px;
+    text-align: center;
+    margin-bottom: 20px;
+  }
+  .static-banner h2 {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 32px;
+    letter-spacing: 3px;
+    color: var(--accent2);
+    margin-bottom: 8px;
+  }
+  .static-banner p { font-size: 13px; color: var(--text2); line-height: 1.6; }
+
+  .cert-grid { display: grid; grid-template-columns: repeat(2,1fr); gap: 12px; }
+  .cert-card {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 20px 16px;
+    text-align: center;
+    cursor: pointer;
+    transition: border-color .2s;
+  }
+  .cert-card:hover { border-color: var(--accent2); }
+  .cert-amount {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 32px;
+    color: var(--accent2);
+  }
+  .cert-label { font-size: 11px; color: var(--text3); margin-top: 4px; }
+  .cert-btn {
+    margin-top: 14px;
+    width: 100%;
+    padding: 10px;
+    background: var(--accent2);
+    border: none;
+    border-radius: 8px;
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 13px;
+    letter-spacing: 1.5px;
+    color: #000;
+    cursor: pointer;
+  }
+
+  .sale-banner {
+    background: linear-gradient(135deg, #1a0000, #0a0a0a);
+    border: 1px solid rgba(255,68,68,.2);
+    border-radius: 16px;
+    padding: 24px;
+    text-align: center;
+    margin-bottom: 16px;
+  }
+  .sale-banner h2 {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 48px;
+    color: var(--danger);
+    letter-spacing: 4px;
+  }
+  .sale-banner p { font-size: 12px; color: var(--text2); margin-top: 6px; }
+
+  .marketplace-grid { display: grid; gap: 12px; }
+  .mp-card {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 16px;
+    display: flex; align-items: center; gap: 14px;
+    cursor: pointer;
+    transition: border-color .2s;
+  }
+  .mp-card:hover { border-color: var(--accent2); }
+  .mp-icon {
+    width: 48px; height: 48px;
+    background: var(--border);
+    border-radius: 12px;
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 18px;
+    color: var(--accent2);
+    flex-shrink: 0;
+  }
+  .mp-info {}
+  .mp-name { font-size: 14px; font-weight: 600; margin-bottom: 4px; }
+  .mp-desc { font-size: 12px; color: var(--text3); }
+
+  /* ── CART MODAL ── */
+  #cart-modal {
+    position: fixed;
+    inset: 0;
+    z-index: 200;
+    display: flex;
+    flex-direction: column;
+    transform: translateY(100%);
+    transition: transform .3s cubic-bezier(.4,0,.2,1);
+    background: var(--bg);
+  }
+  #cart-modal.open { transform: translateY(0); }
+  .cart-header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 16px;
+    border-bottom: 1px solid var(--border);
+  }
+  .cart-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 22px;
+    letter-spacing: 2px;
+    color: var(--accent2);
+  }
+  .cart-close {
+    width: 34px; height: 34px;
+    background: var(--surface2);
+    border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer;
+  }
+  .cart-close svg { width: 16px; height: 16px; fill: none; stroke: var(--text); stroke-width: 2; }
+  #cart-items { flex: 1; overflow-y: auto; padding: 12px 16px; scrollbar-width: none; }
+  #cart-items::-webkit-scrollbar { display: none; }
+  .cart-item {
+    display: flex; gap: 12px;
+    padding: 12px 0;
+    border-bottom: 1px solid var(--border);
+  }
+  .cart-item-img {
+    width: 72px; height: 90px;
+    background: var(--surface2);
+    border-radius: 8px;
+    overflow: hidden; flex-shrink: 0;
+  }
+  .cart-item-img img { width: 100%; height: 100%; object-fit: cover; }
+  .cart-item-info { flex: 1; }
+  .cart-item-brand { font-size: 9px; letter-spacing: 2px; color: var(--accent2); margin-bottom: 3px; }
+  .cart-item-name { font-size: 13px; font-weight: 500; margin-bottom: 4px; line-height: 1.3; }
+  .cart-item-size { font-size: 11px; color: var(--text3); margin-bottom: 8px; }
+  .cart-item-price { font-size: 14px; font-weight: 700; }
+  .cart-item-del {
+    padding: 4px;
+    cursor: pointer;
+    color: var(--text3);
+    align-self: flex-start;
+  }
+  .cart-item-del svg { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 2; }
+  .cart-footer { padding: 16px; border-top: 1px solid var(--border); }
+  .cart-total-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; }
+  .cart-total-label { font-size: 12px; color: var(--text3); letter-spacing: 1px; text-transform: uppercase; }
+  .cart-total-price { font-family: 'Bebas Neue', sans-serif; font-size: 26px; color: var(--accent2); }
+  .btn-checkout {
+    width: 100%;
+    padding: 16px;
+    background: var(--accent2);
+    border: none;
+    border-radius: 12px;
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 18px;
+    letter-spacing: 3px;
+    color: #000;
+    cursor: pointer;
+    transition: opacity .2s;
+  }
+  .btn-checkout:active { opacity: .85; }
+
+  .empty-cart {
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    height: 200px; gap: 12px;
+    color: var(--text3);
+  }
+  .empty-cart svg { width: 48px; height: 48px; fill: none; stroke: var(--text3); stroke-width: 1.5; opacity: .5; }
+  .empty-cart p { font-size: 13px; }
+
+  /* ── TOAST ── */
+  #toast {
+    position: fixed;
+    bottom: 80px; left: 50%; transform: translateX(-50%) translateY(20px);
+    background: #1e1e1e;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 10px 18px;
+    font-size: 13px;
+    color: var(--text);
+    white-space: nowrap;
+    opacity: 0;
+    transition: opacity .2s, transform .2s;
+    z-index: 300;
+    pointer-events: none;
+  }
+  #toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+  #toast .toast-accent { color: var(--accent2); font-weight: 600; }
+
+  /* ── PLACEHOLDER IMAGE ── */
+  .ph-img {
+    width: 100%; height: 100%;
+    display: flex; align-items: center; justify-content: center;
+    background: var(--surface2);
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 13px;
+    letter-spacing: 2px;
+    color: var(--text3);
+  }
+</style>
+</head>
+<body>
+<div id="app">
+
+  <!-- TOP TABS -->
+  <div id="tabs">
+    <div class="tab active" data-tab="clothes">ОДЕЖДА</div>
+    <div class="tab" data-tab="shoes">ОБУВЬ</div>
+    <div class="tab" data-tab="accessories">АКСЕССУАРЫ</div>
+    <div class="tab" data-tab="certificates">СЕРТИФИКАТЫ</div>
+    <div class="tab sale-tab" data-tab="sale">SALE</div>
+    <div class="tab" data-tab="marketplace">Marketplace</div>
+  </div>
+
+  <!-- MAIN CONTENT -->
+  <div id="main">
+
+    <!-- ОДЕЖДА -->
+    <div class="screen active" id="screen-clothes">
+      <!-- brand list injected here -->
+    </div>
+
+    <!-- ОБУВЬ -->
+    <div class="screen" id="screen-shoes"></div>
+
+    <!-- АКСЕССУАРЫ -->
+    <div class="screen" id="screen-accessories"></div>
+
+    <!-- СЕРТИФИКАТЫ -->
+    <div class="screen" id="screen-certificates">
+      <div class="static-screen">
+        <div class="static-banner">
+          <h2>ПОДАРОЧНЫЕ СЕРТИФИКАТЫ</h2>
+          <p>Идеальный подарок для ценителей стиля.<br>Доступен в любом номинале.</p>
+        </div>
+        <div class="cert-grid">
+          <div class="cert-card">
+            <div class="cert-amount">5 000</div>
+            <div class="cert-label">рублей</div>
+            <button class="cert-btn" onclick="addCertToCart(5000)">В КОРЗИНУ</button>
+          </div>
+          <div class="cert-card">
+            <div class="cert-amount">10 000</div>
+            <div class="cert-label">рублей</div>
+            <button class="cert-btn" onclick="addCertToCart(10000)">В КОРЗИНУ</button>
+          </div>
+          <div class="cert-card">
+            <div class="cert-amount">15 000</div>
+            <div class="cert-label">рублей</div>
+            <button class="cert-btn" onclick="addCertToCart(15000)">В КОРЗИНУ</button>
+          </div>
+          <div class="cert-card">
+            <div class="cert-amount">20 000</div>
+            <div class="cert-label">рублей</div>
+            <button class="cert-btn" onclick="addCertToCart(20000)">В КОРЗИНУ</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SALE -->
+    <div class="screen" id="screen-sale">
+      <div class="static-screen">
+        <div class="sale-banner">
+          <h2>SALE</h2>
+          <p>Скидки до 70% на избранные позиции</p>
+        </div>
+        <div class="products-grid" id="sale-grid"></div>
+      </div>
+    </div>
+
+    <!-- MARKETPLACE -->
+    <div class="screen" id="screen-marketplace">
+      <div class="static-screen">
+        <div class="static-banner">
+          <h2>MARKETPLACE</h2>
+          <p>Найдите нас на ведущих маркетплейсах</p>
+        </div>
+        <div class="marketplace-grid">
+          <div class="mp-card" onclick="openMarketplace('wildberries')">
+            <div class="mp-icon">WB</div>
+            <div class="mp-info">
+              <div class="mp-name">Wildberries</div>
+              <div class="mp-desc">Тысячи товаров с быстрой доставкой</div>
+            </div>
+          </div>
+          <div class="mp-card" onclick="openMarketplace('ozon')">
+            <div class="mp-icon">OZ</div>
+            <div class="mp-info">
+              <div class="mp-name">Ozon</div>
+              <div class="mp-desc">Официальный магазин Empire Showroom</div>
+            </div>
+          </div>
+          <div class="mp-card" onclick="openMarketplace('lamoda')">
+            <div class="mp-icon">LM</div>
+            <div class="mp-info">
+              <div class="mp-name">Lamoda</div>
+              <div class="mp-desc">Премиальный раздел брендов</div>
+            </div>
+          </div>
+          <div class="mp-card" onclick="openMarketplace('yandex')">
+            <div class="mp-icon">YM</div>
+            <div class="mp-info">
+              <div class="mp-name">Яндекс Маркет</div>
+              <div class="mp-desc">Удобная доставка по всей России</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /main -->
+</div><!-- /app -->
+
+<!-- PRODUCT DETAIL OVERLAY -->
+<div id="product-detail">
+  <div class="detail-header">
+    <div class="detail-back" onclick="closeDetail()">
+      <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
+    </div>
+    <div class="detail-share" onclick="shareProduct()">
+      <svg viewBox="0 0 24 24"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+    </div>
+  </div>
+  <div class="detail-slider" id="detail-slider">
+    <div class="detail-slider-track" id="detail-track"></div>
+    <div class="slider-dots" id="slider-dots"></div>
+  </div>
+  <div class="detail-body">
+    <div class="detail-content" id="detail-content"></div>
+  </div>
+  <div class="detail-bottom">
+    <button class="btn-cart" id="btn-add-cart" onclick="addCurrentToCart()">
+      <svg viewBox="0 0 24 24"><path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 01-8 0"/></svg>
+      В КОРЗИНУ
+    </button>
+    <button class="btn-buy" onclick="buyNow()">КУПИТЬ</button>
+  </div>
+</div>
+
+<!-- CART FAB -->
+<div id="cart-fab" onclick="openCart()">
+  <svg viewBox="0 0 24 24"><path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 01-8 0"/></svg>
+  <div id="cart-count">0</div>
+</div>
+
+<!-- CART MODAL -->
+<div id="cart-modal">
+  <div class="cart-header">
+    <div class="cart-title">КОРЗИНА</div>
+    <div class="cart-close" onclick="closeCart()">
+      <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+    </div>
+  </div>
+  <div id="cart-items"></div>
+  <div class="cart-footer" id="cart-footer"></div>
+</div>
+
+<!-- TOAST -->
+<div id="toast"></div>
+
+<script>
+// ═══════════════════════════════════════════════════════
+// DATA
+// ═══════════════════════════════════════════════════════
+
+// Color palettes for placeholder gradients
+const GRAD = [
+  ['#1a1a1a','#2a2a2a'], ['#0d1117','#1a2030'],
+  ['#111a11','#1a2a1a'], ['#1a1111','#2a1a1a'],
+  ['#16111a','#2a1a2a'],
+];
+
+function gradStyle(i) {
+  const g = GRAD[i % GRAD.length];
+  return `background:linear-gradient(135deg,${g[0]},${g[1]})`;
+}
+
+const BRANDS = {
+  clothes: [
+    { id: 'stone', name: 'Stone Island', count: 24, items: genItems('Stone Island','clothes',24) },
+    { id: 'cp', name: 'C.P. Company', count: 18, items: genItems('C.P. Company','clothes',18) },
+    { id: 'off', name: 'Off-White', count: 31, items: genItems('Off-White','clothes',31) },
+    { id: 'ami', name: 'AMI Paris', count: 22, items: genItems('AMI Paris','clothes',22) },
+    { id: 'kenzo', name: 'Kenzo', count: 15, items: genItems('Kenzo','clothes',15) },
+    { id: 'palm', name: 'Palm Angels', count: 19, items: genItems('Palm Angels','clothes',19) },
+    { id: 'amiri', name: 'Amiri', count: 28, items: genItems('Amiri','clothes',28) },
+    { id: 'msgm', name: 'MSGM', count: 12, items: genItems('MSGM','clothes',12) },
+    { id: 'moncler', name: 'Moncler', count: 20, items: genItems('Moncler','clothes',20) },
+    { id: 'fear', name: 'Fear of God', count: 16, items: genItems('Fear of God','clothes',16) },
+  ],
+  shoes: [
+    { id: 'nk', name: 'Nike', count: 45, items: genItems('Nike','shoes',45) },
+    { id: 'ad', name: 'Adidas', count: 38, items: genItems('Adidas','shoes',38) },
+    { id: 'nb', name: 'New Balance', count: 22, items: genItems('New Balance','shoes',22) },
+    { id: 'sl', name: 'Salehe Bembury', count: 8, items: genItems('Salehe Bembury','shoes',8) },
+    { id: 'rep', name: 'Represent', count: 14, items: genItems('Represent','shoes',14) },
+    { id: 'rick', name: 'Rick Owens', count: 17, items: genItems('Rick Owens','shoes',17) },
+  ],
+  accessories: [
+    { id: 'gucci', name: 'Gucci', count: 20, items: genItems('Gucci','accessories',20) },
+    { id: 'lv', name: 'Louis Vuitton', count: 15, items: genItems('Louis Vuitton','accessories',15) },
+    { id: 'arc', name: 'Arc\'teryx', count: 10, items: genItems("Arc'teryx",'accessories',10) },
+    { id: 'moncler_a', name: 'Moncler', count: 12, items: genItems('Moncler','accessories',12) },
+  ],
+};
+
+const NAMES = {
+  clothes: ['Куртка с капюшоном','Худи оверсайз','Футболка с принтом','Брюки карго','Рубашка','Свитшот','Пуховик','Тренч','Джинсы slim','Бомбер','Ветровка','Лонгслив'],
+  shoes: ['Кроссовки','Низкие кеды','Высокие хайтопы','Слипоны','Ботинки','Сандалии','Лоферы','Дерби','Сникеры коллаб','Мюли'],
+  accessories: ['Ремень','Кошелек','Сумка-тоут','Бейсболка','Шарф','Поясная сумка','Рюкзак','Ключница','Браслет','Очки'],
+};
+
+const DESCS = [
+  'Изготовлено из высококачественного материала с фирменной отделкой. Мягкая подкладка обеспечивает максимальный комфорт в любое время года.',
+  'Авторский крой подчёркивает силуэт и придаёт образу лёгкость. Уникальная деталировка делает каждую вещь настоящим произведением моды.',
+  'Ограниченная серия с эксклюзивным принтом. Технологичный материал с влагоотводящими свойствами для активного образа жизни.',
+  'Культовая модель сезона. Архивный дизайн, переосмысленный для современного гардероба. Двойная строчка и усиленные швы.',
+  'Свободный силуэт в стиле оверсайз. Стираный хлопок с эффектом винтажа. Удлинённый крой для многослойных образов.',
+];
+
+function genItems(brand, cat, count) {
+  const names = NAMES[cat] || NAMES.clothes;
+  const items = [];
+  const n = Math.min(count, 12);
+  for (let i = 0; i < n; i++) {
+    const hasSale = Math.random() > .65;
+    const price = Math.round((Math.random() * 40 + 8) * 1000);
+    const oldPrice = hasSale ? Math.round(price * (1 + Math.random() * .3 + .1)) : null;
+    const badges = [];
+    if (i === 0) badges.push('new');
+    if (hasSale) badges.push('sale');
+    if (i === 2) badges.push('hit');
+    const sizes = ['XS','S','M','L','XL','XXL'].filter(() => Math.random() > .3);
+    const photoCount = Math.floor(Math.random() * 3) + 2;
+    items.push({
+      id: `${brand.toLowerCase().replace(/\s/g,'-')}-${i}`,
+      brand, cat,
+      name: names[i % names.length],
+      price, oldPrice,
+      discount: hasSale ? Math.round((1 - price/oldPrice) * 100) : null,
+      badges,
+      sizes,
+      desc: DESCS[i % DESCS.length],
+      photoCount,
+      gradIdx: i,
+      tags: ['Новая коллекция','Унисекс','Органический хлопок'].slice(0, 1 + i%3),
+      specs: [
+        { k: 'Состав', v: '100% хлопок' },
+        { k: 'Сезон', v: 'Весна/Лето 2025' },
+        { k: 'Страна', v: 'Италия' },
+      ],
+    });
+  }
+  return items;
+}
+
+// Collect SALE items
+const SALE_ITEMS = [];
+Object.values(BRANDS).forEach(cat => cat.forEach(b => b.items.forEach(it => {
+  if (it.badges.includes('sale')) SALE_ITEMS.push(it);
+})));
+
+// ═══════════════════════════════════════════════════════
+// STATE
+// ═══════════════════════════════════════════════════════
+let currentTab = 'clothes';
+let currentBrand = null;
+let currentProduct = null;
+let selectedSize = null;
+let sliderIdx = 0;
+let cart = [];
+let favorites = new Set();
+let touchStartX = 0, touchStartY = 0;
+
+// ═══════════════════════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════════════════════
+document.addEventListener('DOMContentLoaded', () => {
+  if (window.Telegram?.WebApp) {
+    Telegram.WebApp.ready();
+    Telegram.WebApp.expand();
+  }
+
+  // Init brand screens
+  ['clothes','shoes','accessories'].forEach(cat => {
+    renderBrandScreen(cat);
+  });
+
+  // Render sale grid
+  renderProducts('sale-grid', SALE_ITEMS);
+
+  // Tab clicks
+  document.querySelectorAll('.tab').forEach(t => {
+    t.addEventListener('click', () => switchTab(t.dataset.tab));
+  });
+
+  // Slider touch
+  const slider = document.getElementById('detail-slider');
+  slider.addEventListener('touchstart', e => {
+    touchStartX = e.touches[0].clientX;
+    touchStartY = e.touches[0].clientY;
+  }, {passive:true});
+  slider.addEventListener('touchend', e => {
+    const dx = e.changedTouches[0].clientX - touchStartX;
+    const dy = Math.abs(e.changedTouches[0].clientY - touchStartY);
+    if (Math.abs(dx) > 40 && dy < 60) {
+      if (dx < 0) sliderNext(); else sliderPrev();
+    }
+  }, {passive:true});
+
+  // Set slider height
+  setSliderHeight();
+  window.addEventListener('resize', setSliderHeight);
+});
+
+function setSliderHeight() {
+  const vh = window.innerHeight;
+  const sliderH = Math.round(vh * .52);
+  document.getElementById('detail-slider').style.height = sliderH + 'px';
+}
+
+// ═══════════════════════════════════════════════════════
+// TABS
+// ═══════════════════════════════════════════════════════
+function switchTab(tab) {
+  currentTab = tab;
+  document.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t.dataset.tab === tab));
+  document.querySelectorAll('.screen').forEach(s => s.classList.toggle('active', s.id === `screen-${tab}`));
+  document.getElementById('main').scrollTop = 0;
+}
+
+// ═══════════════════════════════════════════════════════
+// BRAND SCREEN
+// ═══════════════════════════════════════════════════════
+function renderBrandScreen(cat) {
+  const el = document.getElementById(`screen-${cat}`);
+  const brands = BRANDS[cat];
+  el.innerHTML = `
+    <div class="brand-screen" id="brand-screen-${cat}">
+      <div class="search-wrap">
+        <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        <input class="search-input" placeholder="Поиск бренда..." oninput="filterBrands(event,'${cat}')">
+      </div>
+      <div class="section-title">ВСЕ БРЕНДЫ</div>
+      <div class="brands-grid" id="brands-grid-${cat}">
+        ${brands.map(b => brandCard(b, cat)).join('')}
+      </div>
+    </div>
+    <div class="products-screen" id="products-screen-${cat}" style="display:none">
+      <div class="products-header">
+        <div class="back-btn" onclick="backToBrands('${cat}')">
+          <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
+        </div>
+        <div class="products-header-title" id="products-title-${cat}"></div>
+      </div>
+      <div class="products-grid" id="products-grid-${cat}"></div>
+    </div>
+  `;
+}
+
+function brandCard(b, cat) {
+  return `<div class="brand-card" onclick="openBrand('${cat}','${b.id}')">
+    <div class="brand-initial">${b.name[0]}</div>
+    <div class="brand-info">
+      <div class="brand-name">${b.name}</div>
+      <div class="brand-count">${b.count} товаров</div>
+    </div>
+  </div>`;
+}
+
+function filterBrands(e, cat) {
+  const q = e.target.value.toLowerCase();
+  const grid = document.getElementById(`brands-grid-${cat}`);
+  const filtered = BRANDS[cat].filter(b => b.name.toLowerCase().includes(q));
+  grid.innerHTML = filtered.map(b => brandCard(b, cat)).join('');
+}
+
+function openBrand(cat, brandId) {
+  const brand = BRANDS[cat].find(b => b.id === brandId);
+  if (!brand) return;
+  currentBrand = brand;
+  document.getElementById(`brand-screen-${cat}`).style.display = 'none';
+  const ps = document.getElementById(`products-screen-${cat}`);
+  ps.style.display = 'block';
+  document.getElementById(`products-title-${cat}`).textContent = brand.name.toUpperCase();
+  renderProducts(`products-grid-${cat}`, brand.items);
+  document.getElementById('main').scrollTop = 0;
+}
+
+function backToBrands(cat) {
+  document.getElementById(`brand-screen-${cat}`).style.display = '';
+  document.getElementById(`products-screen-${cat}`).style.display = 'none';
+  document.getElementById('main').scrollTop = 0;
+}
+
+// ═══════════════════════════════════════════════════════
+// PRODUCT GRID
+// ═══════════════════════════════════════════════════════
+function renderProducts(gridId, items) {
+  const grid = document.getElementById(gridId);
+  if (!grid) return;
+  grid.innerHTML = items.map(it => productCardHTML(it)).join('');
+}
+
+function productCardHTML(it) {
+  const isFav = favorites.has(it.id);
+  const badges = it.badges.map(b => `<span class="badge badge-${b}">${b === 'new' ? 'NEW' : b === 'sale' ? 'SALE' : 'HIT'}</span>`).join('');
+  const priceHTML = it.oldPrice
+    ? `<span class="product-price sale">${it.price.toLocaleString('ru')} ₽</span><span class="product-price-old">${it.oldPrice.toLocaleString('ru')}</span>`
+    : `<span class="product-price">${it.price.toLocaleString('ru')} ₽</span>`;
+  return `<div class="product-card" onclick="openProduct('${it.id}','${it.brand}','${it.cat}')">
+    <div class="product-img-wrap">
+      <div class="ph-img" style="${gradStyle(it.gradIdx)};position:absolute;inset:0;font-size:11px">${it.brand.toUpperCase()}</div>
+      <div class="product-badges">${badges}</div>
+      <div class="product-fav${isFav?' active':''}" onclick="toggleFav(event,'${it.id}')">
+        <svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/></svg>
+      </div>
+    </div>
+    <div class="product-info">
+      <div class="product-brand">${it.brand}</div>
+      <div class="product-name">${it.name}</div>
+      <div class="product-price-row">${priceHTML}</div>
+    </div>
+  </div>`;
+}
+
+function toggleFav(e, id) {
+  e.stopPropagation();
+  if (favorites.has(id)) favorites.delete(id);
+  else favorites.add(id);
+  // Update all matching cards
+  document.querySelectorAll(`.product-fav`).forEach(el => {
+    const card = el.closest('.product-card');
+    if (card?.getAttribute('onclick')?.includes(`'${id}'`)) {
+      el.classList.toggle('active', favorites.has(id));
+    }
+  });
+}
+
+// ═══════════════════════════════════════════════════════
+// PRODUCT DETAIL
+// ═══════════════════════════════════════════════════════
+function findProduct(id, brand, cat) {
+  if (cat === 'sale') return SALE_ITEMS.find(i => i.id === id);
+  const brands = BRANDS[cat];
+  if (!brands) return null;
+  const b = brands.find(x => x.name === brand || x.id === brand);
+  if (!b) {
+    // search all
+    for (const bx of brands) {
+      const found = bx.items.find(i => i.id === id);
+      if (found) return found;
+    }
+    return null;
+  }
+  return b.items.find(i => i.id === id);
+}
+
+function openProduct(id, brand, cat) {
+  // Find in all brands
+  let product = null;
+  for (const [c, blist] of Object.entries(BRANDS)) {
+    for (const b of blist) {
+      const found = b.items.find(i => i.id === id);
+      if (found) { product = found; break; }
+    }
+    if (product) break;
+  }
+  if (!product) product = SALE_ITEMS.find(i => i.id === id);
+  if (!product) return;
+
+  currentProduct = product;
+  selectedSize = null;
+  sliderIdx = 0;
+
+  // Build slides
+  const track = document.getElementById('detail-track');
+  const dots = document.getElementById('slider-dots');
+  track.innerHTML = '';
+  dots.innerHTML = '';
+  for (let i = 0; i < product.photoCount; i++) {
+    const slide = document.createElement('div');
+    slide.className = 'detail-slide';
+    slide.innerHTML = `<div class="ph-img" style="${gradStyle(product.gradIdx + i)}">${product.brand.toUpperCase()} — ${product.name.toUpperCase()}</div>`;
+    track.appendChild(slide);
+    const dot = document.createElement('div');
+    dot.className = 'slider-dot' + (i===0?' active':'');
+    dots.appendChild(dot);
+  }
+
+  // Build content
+  const isFav = favorites.has(product.id);
+  const priceRow = product.oldPrice
+    ? `<span class="detail-price sale">${product.price.toLocaleString('ru')} ₽</span>
+       <span class="detail-price-old">${product.oldPrice.toLocaleString('ru')} ₽</span>
+       <span class="detail-discount">-${product.discount}%</span>`
+    : `<span class="detail-price">${product.price.toLocaleString('ru')} ₽</span>`;
+
+  const sizesHTML = product.sizes.length
+    ? `<div class="detail-section-label">РАЗМЕР</div>
+       <div class="sizes-wrap">
+         ${product.sizes.map(s => `<div class="size-chip" onclick="selectSize(this,'${s}')">${s}</div>`).join('')}
+       </div>` : '';
+
+  const tagsHTML = product.tags.length
+    ? `<div class="detail-tags">${product.tags.map(t=>`<span class="detail-tag">${t}</span>`).join('')}</div>` : '';
+
+  const specsHTML = product.specs.length
+    ? `<div class="detail-section-label" style="margin-top:20px">ХАРАКТЕРИСТИКИ</div>
+       <div class="specs-table">${product.specs.map(s=>`<div class="spec-row"><div class="spec-key">${s.k}</div><div class="spec-val">${s.v}</div></div>`).join('')}</div>` : '';
+
+  document.getElementById('detail-content').innerHTML = `
+    <div class="detail-brand-row">
+      <div class="detail-brand">${product.brand}</div>
+      <div class="detail-fav${isFav?' active':''}" id="detail-fav-btn" onclick="toggleDetailFav()">
+        <svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/></svg>
+      </div>
+    </div>
+    <div class="detail-name">${product.name}</div>
+    <div class="detail-price-row">${priceRow}</div>
+    ${sizesHTML}
+    <div class="detail-section-label">ОПИСАНИЕ</div>
+    <div class="detail-desc">${product.desc}</div>
+    ${tagsHTML}
+    ${specsHTML}
+  `;
+
+  document.getElementById('product-detail').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeDetail() {
+  document.getElementById('product-detail').classList.remove('open');
+  document.body.style.overflow = '';
+}
+
+function selectSize(el, size) {
+  document.querySelectorAll('#detail-content .size-chip').forEach(c => c.classList.remove('active'));
+  el.classList.add('active');
+  selectedSize = size;
+}
+
+function toggleDetailFav() {
+  if (!currentProduct) return;
+  if (favorites.has(currentProduct.id)) favorites.delete(currentProduct.id);
+  else favorites.add(currentProduct.id);
+  document.getElementById('detail-fav-btn')?.classList.toggle('active', favorites.has(currentProduct.id));
+}
+
+// slider
+function sliderNext() {
+  if (!currentProduct) return;
+  if (sliderIdx < currentProduct.photoCount - 1) {
+    sliderIdx++;
+    updateSlider();
+  }
+}
+function sliderPrev() {
+  if (sliderIdx > 0) { sliderIdx--; updateSlider(); }
+}
+function updateSlider() {
+  document.getElementById('detail-track').style.transform = `translateX(-${sliderIdx * 100}%)`;
+  document.querySelectorAll('#slider-dots .slider-dot').forEach((d, i) => d.classList.toggle('active', i === sliderIdx));
+}
+
+function shareProduct() {
+  if (!currentProduct) return;
+  if (window.Telegram?.WebApp) {
+    Telegram.WebApp.switchInlineQuery?.(`${currentProduct.brand} ${currentProduct.name}`);
+  }
+  showToast(`🔗 Ссылка скопирована`);
+}
+
+// ═══════════════════════════════════════════════════════
+// CART
+// ═══════════════════════════════════════════════════════
+function addCurrentToCart() {
+  if (!currentProduct) return;
+  if (currentProduct.sizes.length && !selectedSize) {
+    showToast('⚠️ Выберите размер');
+    document.querySelectorAll('#detail-content .size-chip')[0]?.parentElement?.scrollIntoView({behavior:'smooth'});
+    return;
+  }
+  addToCart(currentProduct, selectedSize);
+  showToast(`<span class="toast-accent">${currentProduct.brand}</span> добавлен в корзину`);
+}
+
+function addToCart(product, size) {
+  const key = product.id + (size||'');
+  const existing = cart.find(i => i.key === key);
+  if (existing) existing.qty++;
+  else cart.push({ key, product, size, qty: 1 });
+  updateCartBadge();
+}
+
+function addCertToCart(amount) {
+  cart.push({
+    key: 'cert-' + amount + '-' + Date.now(),
+    product: { id:'cert', brand:'Empire Showroom', name:`Сертификат ${amount.toLocaleString('ru')} ₽`, price: amount, gradIdx: 0, photoCount: 1 },
+    size: null, qty: 1,
+  });
+  updateCartBadge();
+  showToast(`<span class="toast-accent">Сертификат</span> добавлен в корзину`);
+}
+
+function updateCartBadge() {
+  const total = cart.reduce((s, i) => s + i.qty, 0);
+  const fab = document.getElementById('cart-fab');
+  document.getElementById('cart-count').textContent = total;
+  fab.classList.toggle('visible', total > 0);
+}
+
+function removeFromCart(key) {
+  cart = cart.filter(i => i.key !== key);
+  updateCartBadge();
+  renderCartItems();
+}
+
+function openCart() {
+  renderCartItems();
+  document.getElementById('cart-modal').classList.add('open');
+}
+function closeCart() {
+  document.getElementById('cart-modal').classList.remove('open');
+}
+
+function renderCartItems() {
+  const el = document.getElementById('cart-items');
+  const footer = document.getElementById('cart-footer');
+  if (!cart.length) {
+    el.innerHTML = `<div class="empty-cart">
+      <svg viewBox="0 0 24 24"><path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 01-8 0"/></svg>
+      <p>Корзина пуста</p>
+    </div>`;
+    footer.innerHTML = '';
+    return;
+  }
+  el.innerHTML = cart.map(it => `
+    <div class="cart-item">
+      <div class="cart-item-img">
+        <div class="ph-img" style="${gradStyle(it.product.gradIdx||0)};font-size:9px">${it.product.brand.toUpperCase()}</div>
+      </div>
+      <div class="cart-item-info">
+        <div class="cart-item-brand">${it.product.brand}</div>
+        <div class="cart-item-name">${it.product.name}</div>
+        ${it.size ? `<div class="cart-item-size">Размер: ${it.size}</div>` : ''}
+        <div class="cart-item-price">${(it.product.price * it.qty).toLocaleString('ru')} ₽</div>
+      </div>
+      <div class="cart-item-del" onclick="removeFromCart('${it.key}')">
+        <svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/></svg>
+      </div>
+    </div>
+  `).join('');
+
+  const total = cart.reduce((s, i) => s + i.product.price * i.qty, 0);
+  footer.innerHTML = `
+    <div class="cart-total-row">
+      <div class="cart-total-label">ИТОГО</div>
+      <div class="cart-total-price">${total.toLocaleString('ru')} ₽</div>
+    </div>
+    <button class="btn-checkout" onclick="checkout()">ОФОРМИТЬ ЗАКАЗ</button>
+  `;
+}
+
+function checkout() {
+  if (!cart.length) return;
+  const total = cart.reduce((s, i) => s + i.product.price * i.qty, 0);
+  const items = cart.map(i => `${i.product.brand} — ${i.product.name}${i.size?' ('+i.size+')':''}: ${i.product.price.toLocaleString('ru')} ₽`).join('\n');
+  if (window.Telegram?.WebApp) {
+    Telegram.WebApp.sendData(JSON.stringify({
+      action: 'checkout',
+      items: cart.map(i => ({ id: i.product.id, name: i.product.name, brand: i.product.brand, size: i.size, price: i.product.price, qty: i.qty })),
+      total,
+    }));
+  } else {
+    alert(`Заказ на ${total.toLocaleString('ru')} ₽\n\n${items}`);
+  }
+}
+
+function buyNow() {
+  if (!currentProduct) return;
+  if (currentProduct.sizes.length && !selectedSize) { showToast('⚠️ Выберите размер'); return; }
+  addCurrentToCart();
+  closeDetail();
+  setTimeout(openCart, 350);
+}
+
+function openMarketplace(mp) {
+  const urls = {
+    wildberries: 'https://wildberries.ru',
+    ozon: 'https://ozon.ru',
+    lamoda: 'https://lamoda.ru',
+    yandex: 'https://market.yandex.ru',
+  };
+  if (window.Telegram?.WebApp) {
+    Telegram.WebApp.openLink?.(urls[mp]);
+  } else {
+    window.open(urls[mp], '_blank');
+  }
+}
+
+// ═══════════════════════════════════════════════════════
+// TOAST
+// ═══════════════════════════════════════════════════════
+let toastTimer;
+function showToast(html) {
+  const t = document.getElementById('toast');
+  t.innerHTML = html;
+  t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove('show'), 2200);
+}
+</script>
+</body>
+</html>
