@@ -47,7 +47,7 @@ html, body { height:100%; background:#000; color:#fff; font-family:'Inter',sans-
 .header-logo {
   display:flex; align-items:center; gap:10px;
 }
-.logo-icon {
+.logo-icon img {
   width:38px; height:38px;
   border-radius:8px;
   display:flex; align-items:center; justify-content:center;
@@ -181,10 +181,10 @@ html, body { height:100%; background:#000; color:#fff; font-family:'Inter',sans-
 .footer-col + .footer-col { border-left:1px solid var(--border); }
 .footer-logo-row { display:flex; align-items:center; gap:8px; margin-bottom:12px; }
 .footer-logo-icon {
-  width:28px; height:28px; background:#fff; border-radius:6px;
+  width:28px; height:28px; background:transparent; border-radius:6px;
   display:flex; align-items:center; justify-content:center; flex-shrink:0;
 }
-.footer-logo-icon svg { width:16px; height:16px; }
+.footer-logo-icon img { width:28px; height:28px; border-radius:6px; }
 .footer-brand {
   font-family:'Unbounded',sans-serif; font-size:9px; font-weight:700;
   line-height:1.3; color:#fff;
@@ -544,7 +544,11 @@ html, body { height:100%; background:#000; color:#fff; font-family:'Inter',sans-
   <header class="header">
     <div class="header-logo" onclick="goHome()" style="cursor:pointer">
       <div class="logo-icon">
+        <!-- Empire G logo SVG approximation -->
          <img src="./logo.png" alt="">
+        <!-- <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M4 4h12l-2 4H6v3h6l-2 4H6v2h8l-2 4H4V4z" fill="#000"/>
+        </svg> -->
       </div>
       <div class="logo-text">
         <span>EMPIRE</span>
@@ -584,7 +588,7 @@ html, body { height:100%; background:#000; color:#fff; font-family:'Inter',sans-
         <div class="footer-col">
           <div class="footer-logo-row">
             <div class="footer-logo-icon">
-              <svg viewBox="0 0 24 24" fill="none"><path d="M4 4h12l-2 4H6v3h6l-2 4H6v2h8l-2 4H4V4z" fill="#000"/></svg>
+              <img src="./logo.png" alt="">
             </div>
             <div class="footer-brand"><span>EMPIRE SR</span></div>
           </div>
@@ -633,7 +637,7 @@ html, body { height:100%; background:#000; color:#fff; font-family:'Inter',sans-
       <footer class="footer">
         <div class="footer-col">
           <div class="footer-logo-row">
-            <div class="footer-logo-icon"><svg viewBox="0 0 24 24" fill="none"><path d="M4 4h12l-2 4H6v3h6l-2 4H6v2h8l-2 4H4V4z" fill="#000"/></svg></div>
+            <div class="footer-logo-icon"><img src="./logo.png" alt=""></div>
             <div class="footer-brand"><span>EMPIRE SR</span></div>
           </div>
           <div class="footer-contacts">
@@ -671,7 +675,7 @@ html, body { height:100%; background:#000; color:#fff; font-family:'Inter',sans-
 
       <footer class="footer" style="margin-top:0">
         <div class="footer-col">
-          <div class="footer-logo-row"><div class="footer-logo-icon"><svg viewBox="0 0 24 24" fill="none"><path d="M4 4h12l-2 4H6v3h6l-2 4H6v2h8l-2 4H4V4z" fill="#000"/></svg></div><div class="footer-brand"><span>EMPIRE SR</span></div></div>
+          <div class="footer-logo-row"><div class="footer-logo-icon"><img src="./logo.png" alt=""></div><div class="footer-brand"><span>EMPIRE SR</span></div></div>
           <div class="footer-contacts"><strong>Контакты:</strong>telegram: <a href="https://t.me/emprmanager">@emprmanager</a><br><br><strong>Предложения:</strong>telegram: <a href="https://t.me/emprmanager">@emprmanager</a></div>
         </div>
         <div class="footer-col">
@@ -716,7 +720,7 @@ html, body { height:100%; background:#000; color:#fff; font-family:'Inter',sans-
     <div class="screen" id="screen-cart">
       <div id="cart-content"></div>
       <footer class="footer" style="margin-top:auto">
-        <div class="footer-col"><div class="footer-logo-row"><div class="footer-logo-icon"><svg viewBox="0 0 24 24" fill="none"><path d="M4 4h12l-2 4H6v3h6l-2 4H6v2h8l-2 4H4V4z" fill="#000"/></svg></div><div class="footer-brand"><span>EMPIRE SR</span></div></div><div class="footer-contacts"><strong>Контакты:</strong>telegram: <a href="https://t.me/emprmanager">@emprmanager</a></div></div>
+        <div class="footer-col"><div class="footer-logo-row"><div class="footer-logo-icon"><img src="./logo.png" alt=""></div><div class="footer-brand"><span>EMPIRE SR</span></div></div><div class="footer-contacts"><strong>Контакты:</strong>telegram: <a href="https://t.me/emprmanager">@emprmanager</a></div></div>
         <div class="footer-col"><div class="footer-info-title">ИНФОРМАЦИЯ</div><div class="footer-links"><a href="#">Политика конфиденциальности</a><a href="#">Договор публичной оферты</a></div></div>
         <div class="footer-copyright">© 2025 DAYNIGHT St. Petersburg — All Rights Reserved</div>
       </footer>
